@@ -1,13 +1,16 @@
 #include"server.h"
 namespace myftp
 {
-        server::server():address(Domain::INET,std::string("127.0.0.1")),listen(Domain::INET,Type::STREAM),pool(1)
+        server::server():address(Domain::INET,std::string("127.0.0.1")),listen(address),pool(1)
+        {
+
+        }
+        server::server(addrinfo x,int y):address(x),listen(address), pool(y)
         {
 
         }
         void server:: start()
         {
-                listen.socbind(address);
                 listen.listen();
                 epoll_event eve;
                 eve.events=EPOLLIN;
@@ -25,10 +28,7 @@ namespace myftp
                                         pool.addtask(confd);
                                         // assert(0);
                                 }
-                                if(accepteve[i].events==EPOLLOUT)
-                                {
-
-                                }
+                                
                                 if(accepteve[i].events==EPOLLERR)
                                 {
 

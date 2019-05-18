@@ -13,29 +13,24 @@ enum class Domain
         UNIX=AF_UNIX,
         UNSPEC=AF_UNSPEC
 };
-enum class Type
-{
-        DGRAM=SOCK_DGRAM,
-        STREAM=SOCK_STREAM
-};
+
 class addrinfo
 {
 friend class listenner;
 public:
-        addrinfo(Domain domain, std::string str);
+        addrinfo(Domain x, std::string str);
 
         sockaddr *address;
 private:       
+        Domain domain;
         sockaddr_in inetadd;
-        sockaddr_in6 inte6add;
+        sockaddr_in6 inet6add;
 };
 class listenner
 {
 public:
-        listenner(Domain x,Type y);
-        
-        void socbind( addrinfo address);
-        
+        listenner(addrinfo x);
+               
         void listen();
         
         int accept();
@@ -45,6 +40,6 @@ public:
 private:
         int sockfd;
         Domain domain;
-        Type type;  
+        
 };
 }

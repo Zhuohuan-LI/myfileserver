@@ -3,6 +3,7 @@
 #include<vector>
 #include<cassert>
 #include<iostream>
+#pragma once
 namespace myftp
 {
         enum class Option

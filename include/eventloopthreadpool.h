@@ -1,5 +1,6 @@
 #include"nocopy.h"
 #include"eventloop.h"
+
 // #ifndef MUTEX_H
 // #define MUTEX_H
 // #endif
@@ -32,11 +33,13 @@ public:
          ~threadpool();
         
 private:
-        static void* init(void*arg);
+        static void* workinit(void*arg);
+        static void* loginit(void*arg);
 
-        int max_threads;
+        int work_threads;
         vector<shared_ptr<loopdata>> sharedlist;
         bool quit;
+        
         int index=0; 
         
 };

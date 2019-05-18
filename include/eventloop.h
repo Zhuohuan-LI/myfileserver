@@ -1,10 +1,12 @@
-#include"epollclass.h"
-#include"mutex.h"
+// #include"epollclass.h"
+// #include"mutex.h"
 #include"event_handle.h"
+#include"logging.h"
 
 #include<deque>
 #include"map"
 #include<memory>
+
 
 // #ifndef MUTEX_H
 // #define MUTEX_H
@@ -14,12 +16,18 @@ namespace myftp
 using std::map;
 using std::deque;
 using std::shared_ptr;
+using std::pair;
+using std::make_shared;
+
+
 struct loopdata
 {
         bool run;
         int wakefd;
-        mutex lock;
+        log_producer logger;
+        mutex worklock;//
         deque<int>socklist;
+        
         
 };
 class eventloop

@@ -1,7 +1,7 @@
 target=httpserver.exe
 cc=g++ -std=c++11
 CXXFLAGS=-lpthread  -I include  -g
-obj=main.o epollclass.o event_handle.o eventloop.o eventloopthreadpool.o listenner.o mutex.o server.o
+obj=main.o epollclass.o event_handle.o eventloop.o eventloopthreadpool.o listenner.o mutex.o server.o logging.o
 vpath %.h include
 vpath %.cpp cpp
 ${target}:${obj}
@@ -22,6 +22,8 @@ mutex.o:mutex.cpp
 	${cc} -c ${CXXFLAGS} $^ 
 server.o:server.cpp
 	${cc} -c ${CXXFLAGS} $^ 
+logging.o:logging.cpp
+	${cc} -c ${CXXFLAGS} $^
 .PHONY:clean
 clean:	
 	-rm ${obj}
