@@ -6,6 +6,8 @@ class server:public nocopyable
 {
 public:
         server();
+
+        server(addrinfo x,int y);
         void start();
         
 private:
@@ -13,8 +15,6 @@ private:
         listenner listen;
         threadpool pool;
         epoll ep;
-        
-
 };
 
 }

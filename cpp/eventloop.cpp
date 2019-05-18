@@ -1,7 +1,8 @@
 #include"eventloop.h"
 namespace myftp{
-        eventloop::eventloop(shared_ptr<loopdata>x):ep(),info(x)
+        eventloop::eventloop(shared_ptr<loopdata>x):ep()
         {     
+                info=x;
                 int fd=info->wakefd;
 
                 epoll_event eve;
@@ -23,9 +24,10 @@ namespace myftp{
                         {       
                                 uint64_t y;
                                 read(fd,&y,sizeof(uint64_t));//
-                                info->lock.lock();
+                                info->worklock.lock();
                                 //取走所有的新分配的socket
-                                for(int i=0;i<(*info).socklist.size();i++)
+                                int socnum=(*info).socklist.size();
+                                for(int i=0;i<socnum;i++)
                                 {
                                         //向epoll中注册事件
                                         int confd=(*info).socklist[i];
@@ -33,19 +35,20 @@ namespace myftp{
                                         newevent.events=epoll::IN;
                                         newevent.data.fd=confd;
 
- 
-
                                         //构建socket对应的处理器，并保存起来，留待调用
                                         event_handle handle(confd);
-                                        std::pair<int ,event_handle> temp{confd,handle};
+                                        std::pair<int ,event_handle> temp;
+                                        temp=std::make_pair(confd,handle);
                                         auto item=socevent.emplace(temp);
                                         if(item.second==0)
                                                 throw item;
                                         ep.add(confd,newevent);
                                         // assert(0);
+
+                                        info->logger.loginfo("new connection",__FILE__,__LINE__);
                                 }
                                 info->socklist.clear();
-                                info->lock.unlock();
+                                info->worklock.unlock();
                         }
                         else
                         {
@@ -64,11 +67,14 @@ namespace myftp{
                                                  }
                                                   if(flag==-1)//对方断开连接
                                                   {
+                                                          it->second.sendmessage();
                                                           epoll_event newevent;
                                                           int flag=ep.del(fd,newevent);
                                                           assert(flag==0);
                                                           int num=socevent.erase(fd);
                                                           assert(num);
+                                                          close(fd);
+                                                          info->logger.loginfo("connection closed",__FILE__,__LINE__);
                                                   }
                                                 //  assert(0);
                                         }
@@ -86,20 +92,31 @@ namespace myftp{
                                          }       
                                         if(eve[i].events==(EPOLLIN|EPOLLOUT))
                                         {
-                                                it->second.receivemessage();
-                                                bool flag=it->second.sendmessage();
-                                                if(flag)
+                                                int flag=it->second.receivemessage();
+                                                if(flag==-1)
                                                 {
+                                                        it->second.sendmessage();
                                                         epoll_event newevent;
-                                                         newevent.events=EPOLLIN;
-                                                         newevent.data.fd=fd;
-                                                         ep.mod(fd,newevent);
+                                                        int flag=ep.del(fd,newevent);
+                                                        assert(flag==0);
+                                                        int num=socevent.erase(fd);
+                                                        assert(num);
+                                                        close(fd);
+                                                }
+                                                else
+                                                {
+                                                      bool flag2=it->second.sendmessage();
+                                                        if(flag2)
+                                                        {
+                                                                epoll_event newevent;
+                                                                newevent.events=EPOLLIN;
+                                                                newevent.data.fd=fd;
+                                                                ep.mod(fd,newevent);
+                                                        }  
                                                 }
                                         }
                                 }
                         }
-                        
                 }
-                
         }
 }
