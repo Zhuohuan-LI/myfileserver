@@ -14,7 +14,8 @@ namespace myftp
                 listen.listen();
                 epoll_event eve;
                 eve.events=EPOLLIN;
-                ep.add(listen.socket(),eve);     
+                ep.add(listen.socket(),eve);    
+                pool.start(); 
                 for(;;)
                 {  
                         std::vector<epoll_event> accepteve;

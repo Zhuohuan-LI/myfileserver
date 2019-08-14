@@ -1,11 +1,11 @@
-#include"event_handle.h"
+#include"connection.h"
 namespace myftp{
-event_handle::event_handle(int x):fd(x){
+connection::connection(int x):fd(x){
         
         registered=0;
         filefd=-1;
 }
-bool event_handle::sendmessage(){
+bool connection::sendmessage(){
 
         if(filefd!=-1)
         {
@@ -69,7 +69,7 @@ bool event_handle::sendmessage(){
         }
         return 0;
 }
-int event_handle:: receivemessage(){
+int connection:: receivemessage(){
 
         int bytes=0;
         char temp[401];
@@ -148,7 +148,7 @@ int event_handle:: receivemessage(){
         return 0;
                   
 }
-void event_handle::urlprocessing(char* urlstr,int len)
+void connection::urlprocessing(char* urlstr,int len)
 {
         struct stat urlinfo;
         int flag=stat((char*)urlstr,&urlinfo);
@@ -232,17 +232,17 @@ void event_handle::urlprocessing(char* urlstr,int len)
                 Content-Type: text/html\n\nSorry,the file not found on this server\n");
         }
 }
-unsigned char event_handle::char_to_hex( unsigned char x )   
+unsigned char connection::char_to_hex( unsigned char x )   
 {   
         return (unsigned char)(x > 9 ? x + 55: x + 48);   
 } 
- bool event_handle::is_alpha_number_char( unsigned char c )   
+ bool connection::is_alpha_number_char( unsigned char c )   
 {   
         if ( (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') )   
                 return 1;   
         return 0;   
 }  
-int event_handle::urlencode( unsigned char * src, int  src_len, unsigned char * dest, int  dest_len )   
+int connection::urlencode( unsigned char * src, int  src_len, unsigned char * dest, int  dest_len )   
 {   
         unsigned char ch;   
         int  len = 0;
@@ -275,7 +275,7 @@ int event_handle::urlencode( unsigned char * src, int  src_len, unsigned char * 
         *dest = 0;
         return  reslen;   
 }   
-int event_handle::urldecode(unsigned char* encd,unsigned char* decd)   
+int connection::urldecode(unsigned char* encd,unsigned char* decd)   
 {   
         int j,i;   
         char *cd =(char*) encd;   
@@ -301,7 +301,7 @@ int event_handle::urldecode(unsigned char* encd,unsigned char* decd)
         decd[j] = 0;    
         return j;  
 }  
-std::string event_handle::registerhtml="\
+std::string connection::registerhtml="\
 <html>\
 <head>\
 </head>\
@@ -331,7 +331,7 @@ std::string event_handle::registerhtml="\
 </body>\
 </html>\
 ";
-std::string event_handle::html="\
+std::string connection::html="\
 <html i18n-values=\"dir:textdirection;lang:language\">\
 <head>\
 <meta charset=\"utf-8\">\

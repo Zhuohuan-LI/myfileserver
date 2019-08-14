@@ -49,7 +49,7 @@ class condition
 {
 public:
         condition();
-        condition& wait();
+        void  wait();
         void lock();
         
         void unlock();

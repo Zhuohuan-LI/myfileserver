@@ -1,12 +1,12 @@
 // #include"epollclass.h"
 // #include"mutex.h"
-#include"event_handle.h"
+#include"connection.h"
 #include"logging.h"
 
 #include<deque>
 #include"map"
 #include<memory>
-
+#include"sys/eventfd.h"
 
 // #ifndef MUTEX_H
 // #define MUTEX_H
@@ -20,28 +20,21 @@ using std::pair;
 using std::make_shared;
 
 
-struct loopdata
-{
-        bool run;
-        int wakefd;
-        log_producer logger;
-        mutex worklock;//
-        deque<int>socklist;
-        
-        
-};
 class eventloop
 {
-friend class threadpool;
+friend class eventloopthread;
 public:
-        eventloop(shared_ptr<loopdata>x);
+        eventloop();
         
         void loop();
         
 
 private:
         epoll ep;
-        shared_ptr<loopdata> info;
-        map<int,event_handle> socevent;//保存线程持有的socket所对应的处理器
+        mutex lock_;
+        int wakefd;
+        map<int,connection> connections_;//保存线程持有的socket所对应的处理器
+        deque<int>soctask;
+        
 };
 }

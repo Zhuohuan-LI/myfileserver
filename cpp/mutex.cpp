@@ -52,10 +52,9 @@ namespace myftp{
         {
 
         }
-        condition& condition::wait()
+        void condition::wait()
         {
                 pthread_cond_wait(&condlock,&mutexcond.mutexlock);
-                return *this;
         }
         void condition::lock()
         {

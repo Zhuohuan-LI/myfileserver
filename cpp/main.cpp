@@ -4,6 +4,7 @@
 #include"sys/signal.h"
 int main(int argc,char *argv[])
 {
+        
         // pid_t pid;
         // if(pid=fork(),pid<0)
         //         return(-1);
@@ -27,6 +28,8 @@ int main(int argc,char *argv[])
         // open("/dev/null",O_RDWR);
         // openlog(argv[0],LOG_PID,0);
 
+        myftp::log_consumer logger(myftp::Logtype::INFO);
+        logger.start();
 
         myftp::addrinfo add(myftp::Domain::INET,"127.0.0.1");
         myftp::server ftpserve(add,1);

@@ -1,28 +1,29 @@
 #include"logging.h"
 namespace myftp
 {
-    log_producer::log_producer(int fd):logfd(fd)
+    log_consumer* log_producer::consumerptr=nullptr;
+    log_producer::log_producer(Logtype x,int y,string z):loggingtype(x),linenum(y),filestr(z)
     {
-
+        
     }
-    void log_producer:: loginfo(string str,string filestr,int line)
+    void log_producer::operator<<(std::string str)
     {
-        str.append(", INFO");
+        logging(str);
+    }
+    void log_producer:: logging(string str)
+    {
+        if(loggingtype==Logtype::DEBUG)
+            str.append(", DEBUG");
+        else
+            str.append(", INFO");
+        
         str.append(", ").append(filestr);
-        str.append(", ").append(std::to_string(line));
-        processing(str,Logtype::INFO);
+        str.append(", ").append(std::to_string(linenum)).append(", ");
+        processing(str);
     }
-    void log_producer::logdebug(string str,string filestr,int line)
-    {
-        str.append(", DEBUG");
-        str.append(", ").append(filestr);
-        str.append(", ").append(std::to_string(line));
-        processing(str,Logtype::DEBUG);
-    }
-    void log_producer::processing(string str,Logtype type)
-    {
-            if(type==loggingtype)
-            {
+    
+    void log_producer::processing(string str)
+    {         
                     time_t timeptr;
                     if(time(&timeptr)==-1)
                             throw "time fail";
@@ -31,52 +32,57 @@ namespace myftp
                     char timebuf[36];
                     strftime(timebuf,35,"%c",&gmptr);
                     str.append(timebuf).append("\r\n");
-
-
-                    loglock.lock();
-                    logbuf.push_back(str);
-                    loglock.unlock();
-                    uint64_t x=1;
-                    write(logfd,&x,sizeof(uint64_t));
-
-            }                        
+                    logbuf.append(str);
+                        
     }
-    log_consumer::log_consumer()
+    log_producer::~log_producer()
+    {
+        if(loggingtype==consumerptr->loggingtype)
+        consumerptr->delivery(logbuf);
+    }
+
+    log_consumer::log_consumer(Logtype x):loggingtype(x)
     {
         filefd=open("./logfile",O_RDWR|O_APPEND|O_CREAT,666);
         if(filefd==-1)
             throw "fileopen fail";
         
     }
-    void  log_consumer::loginit(log_producer* x)
+    void log_consumer::delivery(std::string str)
     {
-        epoll_event eve;
-        eve.events=epoll::IN;
-        eve.data.ptr=x;
-        ep.add(x->logfd,eve);
-        fdnum=fdnum+1;
+        cond.lock();
+        to_file.append(str);
+        cond.unlock();
+        cond.notify();
+    }
+    void log_consumer::start()
+    {
+        int flag;
+        run=1;
+        runinthreadfunc=std::bind(&myftp::log_consumer::logloop,this);
+        if(flag=pthread_create(&thread_,nullptr,&threadfunc,&(runinthreadfunc)),flag==-1)
+                                throw "pthread_create fail";
+        log_producer::consumerptr=this;
+        
+    }
+    void* log_consumer::threadfunc(void*data)
+    {
+        function<void()>temp=*(function<void()>*)data;
+        temp();
     }
     void log_consumer::logloop()
     {
-        std:: vector<epoll_event> eve;//保存内核返回的就绪事件
-        eve.reserve(fdnum);
-        int num=ep.wait(eve);
-        for(int i=0;i<num;i++)
+        while(run)
         {
-            if(eve[i].events==epoll::IN)
+            cond.lock();
+            while (to_file.size()<10)
             {
-                log_producer *x=(log_producer *)eve[i].data.ptr;
-
-                uint64_t y;
-                read(x->logfd,&y,sizeof(uint64_t));//
-
-                x->loglock.lock();
-                vector<string> &xx=x->logbuf;
-                for(int j=0;j<xx.size();j++)
-                    to_file.append(xx[j]);
-                write(filefd,&*to_file.begin(),to_file.size());
-                to_file.clear();
+                cond.wait();
             }
+            write(filefd,&*to_file.begin(),to_file.size());
+            to_file.clear();
+            
         }
     }
+        
 }

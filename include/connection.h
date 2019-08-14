@@ -12,11 +12,11 @@
 #include"fcntl.h"
 namespace myftp
 {
-class event_handle
+class connection
 {
 public:
-        event_handle()=default;
-        event_handle(int x);
+        connection()=default;
+        connection(int x);
         
         //若发完了，关掉EPOLLOUT
         bool sendmessage();
@@ -24,7 +24,8 @@ public:
         //若向发送缓冲区填入了数据，打开EPOLLOUT
         int receivemessage();
         bool registered;
-      
+        
+        int fd;//socket
 private:
          void urlprocessing(char* urlstr,int len);
         static unsigned char char_to_hex( unsigned char x );
@@ -36,7 +37,7 @@ private:
         static std::string html;
         static std::string registerhtml;
 
-        int fd;//socket
+        
         std::vector<std::string> sendtask;
         int filefd;
         std::string recvbuf;
